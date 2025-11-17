@@ -15,7 +15,7 @@ I am passionate about applying numerical techniques and machine learning to solv
 | Category | Skills |
 | :--- | :--- |
 | **Programming** | Python, Matlab |
-| **CFD Software** | CFD++, Ansys Fluent, OpenFOAM, PraVaHa, HiFun [cite: 37] |
+| **CFD Software** | CFD++, Ansys Fluent, OpenFOAM, PraVaHa, HiFun|
 | **Post-Processing** |Paraview, Tecplot |
 | **AI/ML** | AI and ML for fluid dynamics (Python, TensorFlow/Keras)] |
 | **3D Modeling** | AutoCAD 3D, Catia |
@@ -49,13 +49,13 @@ I am passionate about applying numerical techniques and machine learning to solv
 
 ### 💼 Professional Experience
 
-**Application Engineer** | [cite_start]**Measure India Corporation private limited** (Nov '22 - Jun '23)
-* [cite_start]Worked on Universal Testing Machines (UTMs) for destructive testing on aerospace material samples.
-* [cite_start]Conducted High Cycle Fatigue (HCF), Low Cycle Fatigue (LCF), and fatigue crack propagation tests.
+**Application Engineer** | **Measure India Corporation private limited** (Nov '22 - Jun '23)
+* Worked on Universal Testing Machines (UTMs) for destructive testing on aerospace material samples.
+* Conducted High Cycle Fatigue (HCF), Low Cycle Fatigue (LCF), and fatigue crack propagation tests.
 
 ---
 
 ### 🎓 Education
 
-* **M.Tech, Aerospace Engineering** | [cite_start]Indian Institute of Science Bangalore (CGPA: 7.9) [cite: 2, 4]
-* **B.Tech** | [cite_start]Mahaveer Institute of science and technology (CGPA: 7.24) [cite: 4]
+* **M.Tech, Aerospace Engineering** | Indian Institute of Science Bangalore (CGPA: 7.9) 
+* **B.Tech** | Mahaveer Institute of science and technology (CGPA: 7.24) 
