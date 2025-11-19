@@ -26,13 +26,13 @@ I am passionate about applying numerical techniques and machine learning to solv
 
 > **Note to recruiters:** Many of my projects, including coursework assignments, involve proprietary or academic code. I am happy to discuss the methodologies and my contributions in detail.
 
-* **[Mesh Adaptation for RANS Problems](link-to-repo)**
-    *Used PRAVAHA, HIFUN, and CFD++ to perform mesh adaptation, including validating meshes against NASA's TMR website.
-* **[CNN-based Aerodynamics Prediction](link-to-repo)**
+* **Mesh Adaptation for RANS Problems**
+    * Used PRAVAHA, HIFUN, and CFD++ to perform mesh adaptation, including validating meshes against NASA's TMR website.
+* **CNN-based Aerodynamics Prediction**
     * Developed a Convolutional Neural Network (CNN) model that predicts lift ($C_L$) and drag ($C_D$) coefficients from an airfoil's shape and flow conditions.
-* **[Hypersonic Flow Solver](link-to-repo)**
+* **[Hypersonic Flow Solver](https://github.com/manishsharma1701/Projects/tree/main/Hypersonics)**
     * Implemented a Python-based solver for the Taylor-Macoll equation using a modified Newton's method to analyze hypersonic flow over a cone.
-* **[Turbomachinery Cascade Analysis](link-to-repo)**
+* **[Turbomachinery Cascade Analysis](https://github.com/manishsharma1701/Projects/tree/main/Turbomachine_Theory)**
     * Developed a vortex panel method code to analyze flow through a turbomachine cascade.
 
 ---
