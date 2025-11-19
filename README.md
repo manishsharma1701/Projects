@@ -39,12 +39,20 @@ I am passionate about applying numerical techniques and machine learning to solv
 
 ### 🎓 Coursework & Academic Projects
 
-
-* **Numerical Fluid Flow:** Implemented Finite Difference Method (FDM) for 2D problems and Finite Element Method (FEM) for 1D problems.
+* **AeroDynamics:** Conformal mapping,source panel method,vortex panel method,thin airfoil theory and finite wing theory.
+* **Numerical Fluid Flow:**
+  * Implemented Finite Difference Method (FDM) for 2D problems
+  * Finite Element Method (FEM) for 1D problems.
+* **Hypersonic Flow theory:**
+  * Inviscid Hypersonic
+  * Viscous Hypersonic
+  * High Temperature gasdynamics
+  * Thermal protection structures
+* **Turbomachine Theory** 
 * **Combustion:** Performed equilibrium calculations and validated methane ignition delay and propane flame speed using Cantera.
 * **Gas Dynamics:** Implemented the Method of Characteristics (MOC) for supersonic flow analysis. 
 * **Numerical Methods:** Visualized fractals , optimized a robotic arm , and implemented an RK4 solver for a damped, driven harmonic oscillator. 
-* **AeroDynamics:** conformal mapping,source panel method,vortex panel method,thin airfoil theory and finite wing theory.
+
 
 ---
 
