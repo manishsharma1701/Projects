@@ -3,7 +3,7 @@
 
 I am an **Aerospace Engineering M.Tech student** at the **Indian Institute of Science (IISc)**  with a strong foundation in computational methods, fluid dynamics, and aerodynamics.
 
-I am passionate about applying numerical techniques and machine learning to solve complex aerospace challenges.I have hands-on experience as an Application Engineer, performing material testing for the aerospace industry[cite: 45, 48].
+I am passionate about applying numerical techniques to solve complex aerospace challenges.I have hands-on experience as an Application Engineer, performing material testing for the aerospace industry.
 
 * 📫 **How to reach me:** [manish17.sharma01@gmail.com]
 * 🔗 **LinkedIn:** [https://www.linkedin.com/in/manish-sharma-aero/]
