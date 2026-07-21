@@ -26,8 +26,9 @@ I am passionate about applying numerical techniques to solve complex aerospace c
 
 > **Note to recruiters:** Many of my projects, including coursework assignments, involve proprietary or academic code. I am happy to discuss the methodologies and my contributions in detail.
 
-* **Mesh Adaptation for RANS Problems**
-    * Used PRAVAHA, HIFUN, and CFD++ to perform mesh adaptation, including validating meshes against NASA's TMR website.
+* **Verification of CFD Solvers and Adaptive Meshing for Aerodynamic Flows**
+    * Used PRAVAHA, HIFUN, and CFD++ to perform metric based mesh adaptation, including validating meshes against NASA's TMR website.
+    * Hybrid adaptation for HEG cylinder case.
 * **CNN-based Aerodynamics Prediction**
     * Developed a Convolutional Neural Network (CNN) model that predicts lift ($C_L$) and drag ($C_D$) coefficients from an airfoil's shape and flow conditions.
 * **[Hypersonic Flow Solver](https://github.com/manishsharma1701/Projects/tree/main/Hypersonics)**
