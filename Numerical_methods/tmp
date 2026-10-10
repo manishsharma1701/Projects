@@ -4,32 +4,17 @@ import math
 
 class Pipe:
 
-    def __init__(
-        self,
-        start,
-        end,
-        length,
-        diameter=None,
-        velocity=None
-    ):
+    def __init__(self, start, end, length, diameter=None, velocity=None):
 
         self.start = start
         self.end = end
         self.length = float(length)
 
         # Diameter in mm
-        self.diameter = (
-            float(diameter)
-            if diameter is not None
-            else None
-        )
+        self.diameter = float(diameter) if diameter is not None else None
 
         # Velocity in m/s
-        self.velocity = (
-            float(velocity)
-            if velocity is not None
-            else None
-        )
+        self.velocity = float(velocity) if velocity is not None else None
 
         # Mass flow in kg/s
         self.mass_flow = 0.0
@@ -48,6 +33,13 @@ class Pipe:
         self.friction_factor = 0.0
         self.pressure_loss = 0.0
 
+        # NEW: spare pressure at the start node of this pipe, bar
+        # (node pressure - pressure this pipe actually requires)
+        self.spare_pressure = 0.0
+
+        # NEW: True once the pipe has been calculated
+        self.solved = False
+
     def __repr__(self):
 
         return (
@@ -63,11 +55,7 @@ def load_network(filename):
 
     pipes = []
 
-    with open(
-        filename,
-        "r",
-        encoding="utf-8"
-    ) as f:
+    with open(filename, "r", encoding="utf-8") as f:
 
         lines = f.readlines()
 
@@ -132,13 +120,7 @@ def load_network(filename):
                     f"Unknown input type: {input_type}"
                 )
 
-            pipe = Pipe(
-                start,
-                end,
-                length,
-                diameter,
-                velocity
-            )
+            pipe = Pipe(start, end, length, diameter, velocity)
 
             pipes.append(pipe)
 
@@ -205,11 +187,7 @@ def find_source(pipes):
 
     return list(source_nodes)[0]
 
-def find_terminal_nodes(
-    pipes,
-    children,
-    excluded_nodes=None
-):
+def find_terminal_nodes(pipes, children, excluded_nodes=None):
 
     if excluded_nodes is None:
 
@@ -248,22 +226,13 @@ def nm3h_to_mass_flow(
     normal_temperature_c=NORMAL_TEMPERATURE_C
 ):
 
-    temperature_k = (
-        normal_temperature_c + 273.15
-    )
+    temperature_k = normal_temperature_c + 273.15
 
-    pressure_pa = (
-        normal_pressure_bar * 100000
-    )
+    pressure_pa = normal_pressure_bar * 100000
 
-    density = (
-        pressure_pa /
-        (R_AIR * temperature_k)
-    )
+    density = pressure_pa / (R_AIR * temperature_k)
 
-    mass_flow = (
-        flow_nm3h / 3600 * density
-    )
+    mass_flow = flow_nm3h / 3600 * density
 
     return mass_flow
 
@@ -273,55 +242,31 @@ def mass_flow_to_nm3h(
     normal_temperature_c=NORMAL_TEMPERATURE_C
 ):
 
-    temperature_k = (
-        normal_temperature_c + 273.15
-    )
+    temperature_k = normal_temperature_c + 273.15
 
-    pressure_pa = (
-        normal_pressure_bar * 100000
-    )
+    pressure_pa = normal_pressure_bar * 100000
 
-    density = (
-        pressure_pa /
-        (R_AIR * temperature_k)
-    )
+    density = pressure_pa / (R_AIR * temperature_k)
 
-    flow_nm3h = (
-        mass_flow / density * 3600
-    )
+    flow_nm3h = mass_flow / density * 3600
 
     return flow_nm3h
 
-def mass_flow_to_actual_m3h(
-    mass_flow,
-    pressure_bar_g,
-    temperature_c
-):
+def mass_flow_to_actual_m3h(mass_flow, pressure_bar_g, temperature_c):
 
-    pressure_bar_a = (
-        pressure_bar_g + 1.01325
-    )
+    pressure_bar_a = pressure_bar_g + 1.01325
 
-    pressure_pa = (
-        pressure_bar_a * 100000
-    )
+    pressure_pa = pressure_bar_a * 100000
 
-    temperature_k = (
-        temperature_c + 273.15
-    )
+    temperature_k = temperature_c + 273.15
 
-    density = (
-        pressure_pa /
-        (R_AIR * temperature_k)
-    )
+    density = pressure_pa / (R_AIR * temperature_k)
 
     if density <= 0:
 
         return 0.0
 
-    return (
-        mass_flow / density * 3600
-    )
+    return mass_flow / density * 3600
 
 def calculate_mass_flows(
     pipes,
@@ -336,23 +281,15 @@ def calculate_mass_flows(
             "Terminal discharge must be greater than zero."
         )
 
-    terminal_set = set(
-        terminal_nodes
-    )
+    terminal_set = set(terminal_nodes)
 
-    terminal_mass_flow = (
-        nm3h_to_mass_flow(
-            terminal_discharge_nm3h
-        )
-    )
+    terminal_mass_flow = nm3h_to_mass_flow(terminal_discharge_nm3h)
 
     node_mass_flow = {}
 
     for node in terminal_nodes:
 
-        node_mass_flow[node] = (
-            terminal_mass_flow
-        )
+        node_mass_flow[node] = terminal_mass_flow
 
     def calculate_node_flow(node):
 
@@ -372,7 +309,7 @@ def calculate_mass_flows(
 
             return 0.0
 
-        outgoing = children.get(node,[])
+        outgoing = children.get(node, [])
 
         if not outgoing:
 
@@ -382,15 +319,9 @@ def calculate_mass_flows(
 
         for pipe in outgoing:
 
-            child_flow = (
-                calculate_node_flow(
-                    pipe.end
-                )
-            )
+            child_flow = calculate_node_flow(pipe.end)
 
-            pipe.mass_flow = (
-                child_flow
-            )
+            pipe.mass_flow = child_flow
 
             total += child_flow
 
@@ -400,9 +331,7 @@ def calculate_mass_flows(
 
     source = find_source(pipes)
 
-    total_source_mass_flow = (
-        calculate_node_flow(source)
-    )
+    total_source_mass_flow = calculate_node_flow(source)
 
     # --------------------------------------------------------
     # Store pipe flows
@@ -410,18 +339,11 @@ def calculate_mass_flows(
 
     for pipe in pipes:
 
-        pipe.normal_flow = (
-            mass_flow_to_nm3h(
-                pipe.mass_flow
-            )
-        )
+        pipe.normal_flow = mass_flow_to_nm3h(pipe.mass_flow)
 
-    return (
-        node_mass_flow,
-        total_source_mass_flow
-    )
+    return node_mass_flow, total_source_mass_flow
 
-def calculate_pressure_loss(pipe,downstream_pressure_bar_g,temperature_c):
+def calculate_pressure_loss(pipe, downstream_pressure_bar_g, temperature_c):
     # --------------------------------------------------------
     # Zero-flow pipe
     # --------------------------------------------------------
@@ -506,7 +428,11 @@ def calculate_pressure_loss(pipe,downstream_pressure_bar_g,temperature_c):
     # Reynolds Number
     # --------------------------------------------------------
 
-    viscosity = 1.81e-5                         # Pa.s
+    # CHANGED: Sutherland viscosity at gas temperature (was fixed 1.81e-5)
+    viscosity = (
+        1.458e-6 * temperature_k**1.5 /
+        (temperature_k + 110.4)
+    )                                             # Pa.s
 
     reynolds = (
         density *
@@ -550,19 +476,51 @@ def calculate_pressure_loss(pipe,downstream_pressure_bar_g,temperature_c):
     pipe.friction_factor = friction_factor
 
     # --------------------------------------------------------
-    # Darcy-Weisbach Pressure Loss
+    # CHANGED: Isothermal compressible pressure loss
+    # P1^2 - P2^2 = G^2 (R T) [ f L/D + 2 ln(P1/P2) ]
     # --------------------------------------------------------
 
-    pressure_loss_pa = (
-        friction_factor *
-        (pipe.length / diameter) *
-        density *
-        velocity**2 / 2
-    )                                             # ΔP=f(L/D)(rho*V²/2)
+    G = pipe.mass_flow / area                     # kg/m2/s
+    RT = R_AIR * temperature_k
+
+    # Isothermal choking check: outlet velocity must stay below sqrt(RT)
+    if abs(velocity) >= math.sqrt(RT):
+
+        raise RuntimeError(
+            f"Pipe {pipe.start} -> {pipe.end}: velocity at outlet "
+            f"reaches the isothermal choking limit."
+        )
+
+    k = friction_factor * pipe.length / diameter  # f L/D (add K here later)
+    P2 = pressure_pa                              # downstream, Pa abs
+
+    P1 = math.sqrt(P2**2 + G**2 * RT * k)         # first guess, no log term
+
+    for _ in range(100):
+
+        P1_new = math.sqrt(
+            P2**2 + G**2 * RT * (k + 2 * math.log(P1 / P2))
+        )
+
+        if abs(P1_new - P1) <= 1e-10 * P1:
+
+            P1 = P1_new
+            break
+
+        P1 = P1_new
+
+    else:
+
+        raise RuntimeError(
+            f"Pipe {pipe.start} -> {pipe.end}: no convergence"
+        )
+
+    pressure_loss_pa = P1 - P2
 
     pressure_loss_bar = (pressure_loss_pa / 100000)  # Pa -> bar
 
     pipe.pressure_loss = pressure_loss_bar
+    pipe.solved = True
 
     return pressure_loss_bar
 
@@ -578,13 +536,9 @@ def calculate_node_pressures(
 
     for node in terminal_nodes:
 
-        pressures[node] = (
-            outlet_pressure
-        )
+        pressures[node] = outlet_pressure
 
-    terminal_set = set(
-        terminal_nodes
-    )
+    terminal_set = set(terminal_nodes)
 
     def calculate_pressure(node):
 
@@ -601,16 +555,19 @@ def calculate_node_pressures(
         # ----------------------------------------------------
 
         if node == "8":
-            pressures[node] = (outlet_pressure)
+            pressures[node] = outlet_pressure
             return pressures[node]
 
-        outgoing = children.get(node,[])
+        outgoing = children.get(node, [])
 
         if not outgoing:
-            pressures[node] = (outlet_pressure)
+            pressures[node] = outlet_pressure
             return pressures[node]
 
         upstream_pressures = []
+
+        # NEW: remember which pipe each upstream pressure belongs to
+        branch_requirements = []
 
         for pipe in outgoing:
 
@@ -622,34 +579,23 @@ def calculate_node_pressures(
 
                 continue
 
-            child_pressure = (
-                calculate_pressure(
-                    pipe.end
-                )
+            child_pressure = calculate_pressure(pipe.end)
+
+            pressure_loss = calculate_pressure_loss(
+                pipe,
+                child_pressure,
+                temperature_c
             )
 
-            pressure_loss = (
-                calculate_pressure_loss(
-                    pipe,
-                    child_pressure,
-                    temperature_c
-                )
-            )
+            upstream_pressure = child_pressure + pressure_loss
 
-            upstream_pressure = (
-                child_pressure +
-                pressure_loss
-            )
+            upstream_pressures.append(upstream_pressure)
 
-            upstream_pressures.append(
-                upstream_pressure
-            )
+            branch_requirements.append((pipe, upstream_pressure))
 
         if not upstream_pressures:
 
-            pressures[node] = (
-                outlet_pressure
-            )
+            pressures[node] = outlet_pressure
 
             return pressures[node]
 
@@ -657,9 +603,12 @@ def calculate_node_pressures(
         # Required pressure is maximum branch pressure
         # ----------------------------------------------------
 
-        pressures[node] = max(
-            upstream_pressures
-        )
+        pressures[node] = max(upstream_pressures)
+
+        # NEW: spare pressure of each branch at this node
+        for pipe, required in branch_requirements:
+
+            pipe.spare_pressure = pressures[node] - required
 
         return pressures[node]
 
@@ -684,17 +633,13 @@ def solve_pressures(
     # Initial pressure estimate
     for node in terminal_nodes:
 
-        pressures[node] = (
-            outlet_pressure
-        )
+        pressures[node] = outlet_pressure
 
     source = find_source(pipes)
 
     old_source_pressure = None
 
-    for iteration in range(
-        max_iterations
-    ):
+    for iteration in range(max_iterations):
 
         pressures = calculate_node_pressures(
             pipes,
@@ -704,25 +649,17 @@ def solve_pressures(
             temperature_c
         )
 
-        source_pressure = pressures.get(
-            source,
-            outlet_pressure
-        )
+        source_pressure = pressures.get(source, outlet_pressure)
 
         if old_source_pressure is not None:
 
-            difference = abs(
-                source_pressure -
-                old_source_pressure
-            )
+            difference = abs(source_pressure - old_source_pressure)
 
             if difference < tolerance:
 
                 break
 
-        old_source_pressure = (
-            source_pressure
-        )
+        old_source_pressure = source_pressure
 
     return pressures, iteration + 1
 
@@ -734,15 +671,11 @@ def get_nodes(pipes):
 
         if pipe.start not in nodes:
 
-            nodes.append(
-                pipe.start
-            )
+            nodes.append(pipe.start)
 
         if pipe.end not in nodes:
 
-            nodes.append(
-                pipe.end
-            )
+            nodes.append(pipe.end)
 
     return nodes
 
@@ -760,72 +693,43 @@ def print_results(
 
     source = find_source(pipes)
 
-    source_nm3h = (
-        mass_flow_to_nm3h(
-            source_mass_flow
-        )
-    )
+    source_nm3h = mass_flow_to_nm3h(source_mass_flow)
 
     print()
-    print("=" * 125)
+    print("=" * 137)
 
-    print(
-        "COMPRESSIBLE GAS PIPE NETWORK RESULTS"
-    )
+    print("COMPRESSIBLE GAS PIPE NETWORK RESULTS")
 
-    print("=" * 125)
+    print("=" * 137)
 
     print()
 
-    print(
-        f"Source node              : {source}"
-    )
+    print(f"Source node              : {source}")
 
-    print(
-        f"Number of final outlets  : "
-        f"{len(terminal_nodes)}"
-    )
+    print(f"Number of final outlets  : {len(terminal_nodes)}")
 
-    print(
-        f"Outlet discharge         : "
-        f"{terminal_discharge_nm3h:.4f} Nm3/h"
-    )
+    print(f"Outlet discharge         : {terminal_discharge_nm3h:.4f} Nm3/h")
 
-    print(
-        f"Source discharge         : "
-        f"{source_nm3h:.4f} Nm3/h"
-    )
+    print(f"Source discharge         : {source_nm3h:.4f} Nm3/h")
 
-    print(
-        f"Outlet pressure          : "
-        f"{outlet_pressure:.4f} bar(g)"
-    )
+    print(f"Outlet pressure          : {outlet_pressure:.4f} bar(g)")
 
-    print(
-        f"Source pressure          : "
-        f"{pressures[source]:.4f} bar(g)"
-    )
+    print(f"Source pressure          : {pressures[source]:.4f} bar(g)")
 
-    print(
-        f"Gas temperature          : "
-        f"{temperature_c:.2f} °C"
-    )
+    print(f"Gas temperature          : {temperature_c:.2f} °C")
 
-    print(
-        f"Pressure iterations      : "
-        f"{iterations}"
-    )
+    print(f"Pressure iterations      : {iterations}")
 
     # ========================================================
     # FINAL OUTLETS
     # ========================================================
 
     print()
-    print("-" * 125)
+    print("-" * 137)
 
     print("FINAL OUTLETS")
 
-    print("-" * 125)
+    print("-" * 137)
 
     print(
         f"{'Node':<15}"
@@ -833,7 +737,7 @@ def print_results(
         f"{'Pressure bar(g)':>20}"
     )
 
-    print("-" * 125)
+    print("-" * 137)
 
     for node in terminal_nodes:
 
@@ -848,11 +752,11 @@ def print_results(
     # ========================================================
 
     print()
-    print("-" * 125)
+    print("-" * 137)
 
     print("NODE PRESSURES")
 
-    print("-" * 125)
+    print("-" * 137)
 
     nodes = get_nodes(pipes)
 
@@ -870,11 +774,11 @@ def print_results(
     # ========================================================
 
     print()
-    print("-" * 125)
+    print("-" * 137)
 
     print("PIPE RESULTS")
 
-    print("-" * 125)
+    print("-" * 137)
 
     print(
         f"{'Start':<10}"
@@ -889,11 +793,24 @@ def print_results(
         f"{'Re':>12}"
         f"{'f':>10}"
         f"{'Loss bar':>12}"
+        f"{'Spare bar':>12}"
     )
 
-    print("-" * 125)
+    print("-" * 137)
 
     for pipe in pipes:
+
+        # NEW: pipes that were never calculated (zero flow / dead branch)
+        if not pipe.solved:
+
+            print(
+                f"{pipe.start:<10}"
+                f"{pipe.end:<10}"
+                f"{pipe.length:>10.2f}"
+                f"{'no flow - not calculated':>60}"
+            )
+
+            continue
 
         print(
             f"{pipe.start:<10}"
@@ -908,6 +825,7 @@ def print_results(
             f"{pipe.reynolds:>12.0f}"
             f"{pipe.friction_factor:>10.5f}"
             f"{pipe.pressure_loss:>12.6f}"
+            f"{pipe.spare_pressure:>12.6f}"
         )
 
     # ========================================================
@@ -915,50 +833,31 @@ def print_results(
     # ========================================================
 
     print()
-    print("=" * 125)
+    print("=" * 137)
 
-    print(
-        f"REQUIRED SOURCE PRESSURE = "
-        f"{pressures[source]:.6f} bar(g)"
-    )
+    print(f"REQUIRED SOURCE PRESSURE = {pressures[source]:.6f} bar(g)")
 
-    print(
-        f"SOURCE MASS FLOW = "
-        f"{source_mass_flow:.6f} kg/s"
-    )
+    print(f"SOURCE MASS FLOW = {source_mass_flow:.6f} kg/s")
 
-    print(
-        f"SOURCE FLOW = "
-        f"{source_nm3h:.6f} Nm3/h"
-    )
+    print(f"SOURCE FLOW = {source_nm3h:.6f} Nm3/h")
 
-    print("=" * 125)
+    print("=" * 137)
 
 if __name__ == "__main__":
 
     filename = "network4.txt"
 
-    pipes = load_network(
-        filename
-    )
+    pipes = load_network(filename)
 
-    children = build_children(
-        pipes
-    )
+    children = build_children(pipes)
 
     # --------------------------------------------------------
     # Node 8 is deliberately excluded
     # --------------------------------------------------------
 
-    excluded_nodes = {
-        "8"
-    }
+    excluded_nodes = {"8"}
 
-    terminal_nodes = find_terminal_nodes(
-        pipes,
-        children,
-        excluded_nodes
-    )
+    terminal_nodes = find_terminal_nodes(pipes, children, excluded_nodes)
 
     if not terminal_nodes:
 
@@ -966,103 +865,44 @@ if __name__ == "__main__":
             "No terminal nodes were found after excluding node 8."
         )
 
-    source = find_source(
-        pipes
-    )
+    source = find_source(pipes)
 
     print()
 
     print("SOURCE NODE:")
     print(source)
 
-    print()
+    # --------------------------------------------------------
+    # NEW: inputs and solution
+    # --------------------------------------------------------
 
-    print("FINAL OUTLET NODES:")
+    TERMINAL_DISCHARGE_NM3H = 70.0     # Nm3/h at each final outlet
+    OUTLET_PRESSURE_BARG = 23.0        # bar(g) at each final outlet
+    TEMPERATURE_C = 50.0               # gas temperature
 
-    for node in terminal_nodes:
-
-        print(
-            f"  {node}"
-        )
-
-    # ========================================================
-    # OUTLET FLOW
-    # ========================================================
-
-    terminal_discharge_nm3h = float(
-
-        input(
-            "\nDischarge at EACH final outlet "
-            "(Nm3/h): "
-        )
+    node_mass_flow, source_mass_flow = calculate_mass_flows(
+        pipes,
+        children,
+        terminal_nodes,
+        TERMINAL_DISCHARGE_NM3H
     )
-
-    if terminal_discharge_nm3h <= 0:
-
-        raise ValueError(
-            "Discharge must be greater than zero."
-        )
-
-    # ========================================================
-    # TEMPERATURE
-    # ========================================================
-
-    temperature_c = float(
-
-        input(
-            "\nGas temperature (°C): "
-        )
-    )
-
-    # ========================================================
-    # OUTLET PRESSURE
-    # ========================================================
-
-    outlet_pressure = float(
-
-        input(
-            "\nCommon pressure at EACH final outlet "
-            "(gauge bar): "
-        )
-    )
-
-    # ========================================================
-    # MASS FLOW BALANCE
-    # ========================================================
-
-    node_mass_flows, source_mass_flow = (
-        calculate_mass_flows(
-            pipes,
-            children,
-            terminal_nodes,
-            terminal_discharge_nm3h
-        )
-    )
-
-    # ========================================================
-    # COMPRESSIBLE PRESSURE SOLUTION
-    # ========================================================
 
     pressures, iterations = solve_pressures(
         pipes,
         children,
         terminal_nodes,
-        outlet_pressure,
-        temperature_c
+        OUTLET_PRESSURE_BARG,
+        TEMPERATURE_C
     )
-
-    # ========================================================
-    # RESULTS
-    # ========================================================
 
     print_results(
         pipes,
         children,
         terminal_nodes,
         pressures,
-        terminal_discharge_nm3h,
+        TERMINAL_DISCHARGE_NM3H,
         source_mass_flow,
-        temperature_c,
-        outlet_pressure,
+        TEMPERATURE_C,
+        OUTLET_PRESSURE_BARG,
         iterations
     )
